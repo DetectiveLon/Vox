@@ -38,7 +38,7 @@ after installation.
 
 ## Install
 
-1. Download `Vox-1.0.0-setup.exe` from
+1. Download `Vox-1.0.1-setup.exe` from
    [Releases](https://github.com/DetectiveLon/Vox/releases).
 2. Run it. It installs for the current user in `%LOCALAPPDATA%\Programs\Vox`,
    so it does not ask for admin rights.
@@ -158,7 +158,7 @@ Output:
 
 - `dist\Vox\` is the portable app folder; `dist\Vox\Vox.exe` runs without the
   installer.
-- `installer\Output\Vox-1.0.0-setup.exe` is the single-file installer.
+- `installer\Output\Vox-1.0.1-setup.exe` is the single-file installer.
 - `installer\Output\SHA256SUMS.txt` lists checksums.
 
 `installer\build.ps1 -SkipTests` skips the test suite and `-NoInstaller` stops
@@ -193,6 +193,11 @@ a separate product and is left installed; remove it from the same Apps list if
 you no longer need it.
 
 ## Troubleshooting
+
+**Electric noise or distortion over your voice.** The input is the cable Vox
+plays into. Windows routes `CABLE Input` straight back to `CABLE Output`, so Vox
+captures its own output and processes it again. Vox now refuses to start in
+that setup and shows a warning; choose your real microphone as the input.
 
 **No output device / no VB-CABLE.** Install VB-CABLE from
 <https://vb-audio.com/Cable/>, reboot, then press **Refresh** in Vox.

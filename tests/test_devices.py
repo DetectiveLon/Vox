@@ -1,4 +1,12 @@
-from voxapp.devices import AudioDevice, DeviceSet, choose_rate, pick_input, pick_monitor, pick_output
+from voxapp.devices import (
+    AudioDevice,
+    DeviceSet,
+    cable_loop,
+    choose_rate,
+    pick_input,
+    pick_monitor,
+    pick_output,
+)
 
 WASAPI = "Windows WASAPI"
 
@@ -67,6 +75,34 @@ def test_monitor_is_never_the_cable_or_the_output():
     assert pick_monitor(devices, "", cable_in).name == "Speakers"
     # The only speaker is already the output, so there is no monitor candidate.
     assert pick_monitor(devices, "", devices.find_output("Windows WASAPI::Speakers")) is None
+
+
+def test_cable_loop_is_detected_for_the_same_cable():
+    cable_in = device(4, "CABLE Input (VB-Audio Virtual Cable)", inputs=0)
+    cable_out = device(2, "CABLE Output (VB-Audio Virtual Cable)", outputs=0)
+    mic = device(1, "Microphone", outputs=0)
+    speakers = device(3, "Speakers", inputs=0)
+    assert cable_loop(cable_out, cable_in)
+    # A microphone into the cable is the normal routing.
+    assert not cable_loop(mic, cable_in)
+    # Capturing the cable and playing to speakers is also normal.
+    assert not cable_loop(cable_out, speakers)
+    assert not cable_loop(mic, speakers)
+
+
+def test_a_second_cable_is_not_the_same_cable():
+    cable_out = device(2, "CABLE Output (VB-Audio Virtual Cable)", outputs=0)
+    other_in = device(6, "CABLE-A Input (VB-Audio Cable A)", inputs=0)
+    assert cable_loop(cable_out, other_in) is False
+    same = device(7, "CABLE Output (VB-Audio Cable A)", outputs=0)
+    assert cable_loop(same, other_in) is True
+
+
+def test_cable_loop_needs_both_devices():
+    cable_in = device(4, "CABLE Input (VB-Audio Virtual Cable)", inputs=0)
+    cable_out = device(2, "CABLE Output (VB-Audio Virtual Cable)", outputs=0)
+    assert not cable_loop(None, cable_in)
+    assert not cable_loop(cable_out, None)
 
 
 def test_choose_rate_falls_back_to_device_default(monkeypatch):

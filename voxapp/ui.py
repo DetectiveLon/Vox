@@ -38,6 +38,7 @@ from . import APP_NAME, __version__, profiles
 from .devices import (
     AudioDevice,
     DeviceSet,
+    cable_loop,
     pick_input,
     pick_monitor,
     pick_output,
@@ -909,6 +910,14 @@ class MainWindow(QMainWindow):
         if device is None:
             QMessageBox.warning(self, "No microphone", "Select a microphone first.")
             return
+        if device.is_cable_output:
+            QMessageBox.warning(
+                self,
+                "That is the cable",
+                "This input is the virtual cable, which carries whatever an app plays into "
+                "it, not your voice.\n\nChoose your microphone, then record again.",
+            )
+            return
         dialog = RecordDialog(device, self)
         if dialog.exec() == QDialog.Accepted and dialog.saved_path is not None:
             self._refresh_profiles(dialog.saved_path)
@@ -975,7 +984,13 @@ class MainWindow(QMainWindow):
     def _update_audio_hint(self) -> None:
         microphone = self._selected_input()
         output = self._selected_output()
-        if microphone is not None and microphone.is_cable_output:
+        if cable_loop(microphone, output):
+            self.audio_hint.setObjectName("Warn")
+            self.audio_hint.setText(
+                "Vox would capture its own output: this input is the same cable it plays "
+                "into. Choose your microphone as the input."
+            )
+        elif microphone is not None and microphone.is_cable_output:
             self.audio_hint.setObjectName("Warn")
             self.audio_hint.setText(
                 "This input is the cable itself, not a microphone. Pick your real "
@@ -1061,8 +1076,11 @@ class MainWindow(QMainWindow):
         running = self._engine is not None and self._engine.running
         starting = self._start_worker is not None and self._start_worker.isRunning()
         has_profile = self._sample is not None and not self._profile_error
-        devices_ok = self._selected_input() is not None and self._selected_output() is not None
-        can_start = has_profile and devices_ok
+        microphone = self._selected_input()
+        output = self._selected_output()
+        devices_ok = microphone is not None and output is not None
+        looping = cable_loop(microphone, output)
+        can_start = has_profile and devices_ok and not looping
 
         self.start_btn.setEnabled((running or can_start) and not starting)
         self.start_btn.setText(
@@ -1111,6 +1129,11 @@ class MainWindow(QMainWindow):
         elif not devices_ok:
             self.status_pill.set_state("Setup needed", "warn")
             self.status_detail.setText("Select a microphone and an output device.")
+        elif looping:
+            self.status_pill.set_state("Setup needed", "warn")
+            self.status_detail.setText(
+                "The input is the cable Vox plays into. Choose your microphone."
+            )
         else:
             self.status_pill.set_state("Ready", "ok")
             self.status_detail.setText("Ready when you are.")
@@ -1133,6 +1156,15 @@ class MainWindow(QMainWindow):
         monitor = self._selected_monitor()
         if microphone is None or output is None:
             QMessageBox.warning(self, "Audio device missing", "Select an input and an output.")
+            return
+        if cable_loop(microphone, output):
+            QMessageBox.warning(
+                self,
+                "Feedback loop",
+                "The input is the same virtual cable Vox plays into. Windows would feed "
+                "Vox's own output back into its input, which sounds like electrical noise "
+                "over your voice.\n\nChoose your microphone as the input.",
+            )
             return
         if monitor is not None and monitor.index == output.index:
             QMessageBox.warning(

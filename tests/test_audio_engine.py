@@ -133,3 +133,34 @@ def test_isolated_audio_reaches_the_output(fake_audio, sample_voice):
         assert np.isfinite(audio).all()
     finally:
         loop.stop()
+
+
+def test_the_same_cable_cannot_be_input_and_output(fake_audio, sample_voice):
+    """CABLE Output carries what Vox plays into CABLE Input, so that pairing loops."""
+    model = engine.IsolationModel(mode="cpu", chunk_ms=80)
+    loop = engine.AudioEngine(
+        model,
+        sample_voice,
+        device(2, "CABLE Output (VB-Audio Virtual Cable)", 1, 0),
+        device(3, "CABLE Input (VB-Audio Virtual Cable)", 0, 1),
+    )
+    with pytest.raises(engine.EngineError) as caught:
+        loop.start()
+    assert "cable" in str(caught.value).lower()
+    assert not fake_audio.instances
+
+
+def test_a_different_cable_is_allowed(fake_audio, sample_voice):
+    """Two cables are a valid chain: one carries in, the other carries out."""
+    model = engine.IsolationModel(mode="cpu", chunk_ms=80)
+    loop = engine.AudioEngine(
+        model,
+        sample_voice,
+        device(2, "CABLE Output (VB-Audio Cable A)", 1, 0),
+        device(3, "CABLE Input (VB-Audio Virtual Cable)", 0, 1),
+    )
+    try:
+        loop.start()
+        assert loop.running
+    finally:
+        loop.stop()

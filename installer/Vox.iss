@@ -1,11 +1,11 @@
 ; Vox installer. Per-user, no admin needed for the app itself.
 ; Build with installer\build.ps1, or:
-;   ISCC.exe /DAppVersion=1.0.0 installer\Vox.iss
+;   ISCC.exe /DAppVersion=1.0.1 installer\Vox.iss
 
 #include "version.iss"
 
 #ifndef AppVersion
-  #define AppVersion "1.0.0"
+  #define AppVersion "1.0.1"
 #endif
 
 [Setup]

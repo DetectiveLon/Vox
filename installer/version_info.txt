@@ -18,12 +18,12 @@ VSVersionInfo(
           [
             StringStruct('CompanyName', 'DetectiveLon'),
             StringStruct('FileDescription', 'Vox voice isolation'),
-            StringStruct('FileVersion', '1.0.0.0'),
+            StringStruct('FileVersion', '1.0.1.0'),
             StringStruct('InternalName', 'Vox'),
             StringStruct('LegalCopyright', 'Copyright (c) 2026 DetectiveLon'),
             StringStruct('OriginalFilename', 'Vox.exe'),
             StringStruct('ProductName', 'Vox'),
-            StringStruct('ProductVersion', '1.0.0.0')
+            StringStruct('ProductVersion', '1.0.1.0')
           ]
         )
       ]

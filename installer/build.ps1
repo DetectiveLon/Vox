@@ -56,7 +56,7 @@ try {
     Write-Host "Vox $version ($numeric)"
 
     Step 'Model files'
-    $needed = @('enroll.onnx', 'enroll_fp16.onnx', 'chunk_int8.onnx', 'chunk_fp16.onnx', 'config.yaml')
+    $needed = @('enroll.onnx', 'enroll_fp16.onnx', 'chunk_int8.onnx', 'chunk_fp16.onnx', 'config.yaml', 'LICENSE', 'NOTICE')
     $missing = $needed | Where-Object { -not (Test-Path (Join-Path $root "models\$_")) }
     if ($missing) {
         Write-Host "Missing: $($missing -join ', '). Downloading the pinned revision..."

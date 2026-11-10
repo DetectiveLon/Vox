@@ -130,7 +130,8 @@ def fetch(dest: Path, force: bool) -> int:
         notice_target.write_bytes(text)
         print(f"ok   NOTICE ({len(text)} bytes)")
     else:
-        print(f"warning: {NOTICE} is missing, so NOTICE was not written", file=sys.stderr)
+        print(f"NOTICE is missing from {NOTICE}; the app cannot ship without it.", file=sys.stderr)
+        failed += 1
 
     if failed:
         print(f"{failed} file(s) failed verification.", file=sys.stderr)

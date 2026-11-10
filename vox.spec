@@ -13,6 +13,8 @@ REQUIRED = [
     "chunk_int8.onnx",
     "chunk_fp16.onnx",
     "config.yaml",
+    "LICENSE",
+    "NOTICE",
 ]
 missing = [name for name in REQUIRED if not (MODELS / name).is_file()]
 if missing:

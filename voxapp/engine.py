@@ -26,7 +26,7 @@ import numpy as np
 import sounddevice as sd
 import soxr
 
-from .devices import AudioDevice, choose_rate
+from .devices import AudioDevice, cable_loop, choose_rate
 from .paths import models_dir
 
 log = logging.getLogger(__name__)
@@ -329,6 +329,11 @@ class AudioEngine:
             return
         if self.monitor_device is not None and self.monitor_device.index == self.output_device.index:
             raise EngineError("The monitor and the virtual microphone are the same device.")
+        if cable_loop(self.input_device, self.output_device):
+            raise EngineError(
+                "The input is the same virtual cable Vox plays into, so it would process its "
+                "own output. Choose your microphone as the input."
+            )
         self._stop.clear()
         self._bypass.clear()
         self._reset_requested.clear()

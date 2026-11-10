@@ -7,6 +7,7 @@ PortAudio device numbers change when hardware comes and goes, so settings store
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass
 
 import sounddevice as sd
@@ -14,8 +15,9 @@ import sounddevice as sd
 log = logging.getLogger(__name__)
 
 WASAPI = "Windows WASAPI"
-CABLE_OUTPUT = "cable output"
-CABLE_INPUT = "cable input"
+
+# "CABLE Input", and also "CABLE-A Input" from the A+B pack.
+_CABLE_ROLE = re.compile(r"cable(?:[- ][a-d])?\s+(input|output)", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -32,12 +34,18 @@ class AudioDevice:
         return f"{self.hostapi}::{self.name}"
 
     @property
+    def cable_role(self) -> str | None:
+        """'input' for a cable's playback side, 'output' for its capture side."""
+        match = _CABLE_ROLE.search(self.name)
+        return match.group(1).lower() if match else None
+
+    @property
     def is_cable_input(self) -> bool:
-        return CABLE_INPUT in self.name.lower()
+        return self.cable_role == "input"
 
     @property
     def is_cable_output(self) -> bool:
-        return CABLE_OUTPUT in self.name.lower()
+        return self.cable_role == "output"
 
     @property
     def label(self) -> str:
@@ -46,6 +54,29 @@ class AudioDevice:
         if self.is_cable_output:
             return f"{self.name}  (from the cable)"
         return self.name
+
+    @property
+    def cable_family(self) -> str | None:
+        """The cable a device belongs to, for either end of it. None for real devices."""
+        if not (self.is_cable_input or self.is_cable_output):
+            return None
+        start, end = self.name.rfind("("), self.name.rfind(")")
+        if 0 <= start < end:
+            return self.name[start + 1:end].strip().lower()
+        return self.name.strip().lower()
+
+
+def cable_loop(source: AudioDevice | None, sink: AudioDevice | None) -> bool:
+    """True when Vox would capture the very cable it plays into.
+
+    Windows makes anything played to CABLE Input appear on CABLE Output, so that
+    pairing feeds the processed voice straight back into the microphone, where it
+    is processed again, and again. It sounds like electrical noise."""
+    if source is None or sink is None:
+        return False
+    if not (source.is_cable_output and sink.is_cable_input):
+        return False
+    return source.cable_family == sink.cable_family
 
 
 @dataclass
