@@ -54,12 +54,11 @@ FILES: dict[str, tuple[str, str, int]] = {
         "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
         11_358,
     ),
-    "NOTICE": (
-        "NOTICE",
-        "245ce5d9925659adae2f664a2f4886f11dceabc1c9a99d151a9140afecb0d457",
-        940,
-    ),
 }
+
+# VoxLock's NOTICE is not published on Hugging Face, so this repository keeps a
+# verbatim copy and writes it next to the models. It ships with the app.
+NOTICE = Path(__file__).resolve().parent.parent / "third_party" / "voxlock-NOTICE.txt"
 
 
 def sha256(path: Path) -> str:
@@ -124,6 +123,15 @@ def fetch(dest: Path, force: bool) -> int:
             failed += 1
         else:
             print(f"ok   {name} ({size / 1e6:.1f} MB)")
+
+    notice_target = dest / "NOTICE"
+    if NOTICE.is_file():
+        text = NOTICE.read_bytes()
+        notice_target.write_bytes(text)
+        print(f"ok   NOTICE ({len(text)} bytes)")
+    else:
+        print(f"warning: {NOTICE} is missing, so NOTICE was not written", file=sys.stderr)
+
     if failed:
         print(f"{failed} file(s) failed verification.", file=sys.stderr)
         return 1
