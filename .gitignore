@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Third-party model files: fetch with tools/fetch_models.py
+/models/
+
+# Build output
+/build/
+/dist/
+/installer/Output/
+/installer/Vox-*-setup.exe
+/installer/*.bin
+/screenshots/
+
+# Local
+*.log
+*.wav
+!tests/data/*.wav
+.env

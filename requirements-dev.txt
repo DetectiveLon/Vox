@@ -1,0 +1,6 @@
+-r requirements.txt
+pyinstaller==6.16.0
+pytest==8.4.2
+
+# Then, once:
+#   pip install --no-deps voxlock==1.3.0
